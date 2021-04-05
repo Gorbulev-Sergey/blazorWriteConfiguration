@@ -1,0 +1,11 @@
+﻿<div class="mb-3 p-4 rounded bg-dark text-white">
+    <h4>@post.title</h4>
+    <br />
+    <p class="small">@post.text</p>
+    <p class="small text-muted">@post.date.ToShortDateString()</p>
+</div>
+
+@code {
+    [Parameter]
+    public post post { get; set; }
+}

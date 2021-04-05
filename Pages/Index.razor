@@ -1,0 +1,48 @@
+﻿@page "/"
+@inject IPosts Posts
+@inject NavigationManager NavigationManager
+@using System.IO;
+@using System.Text.Json;
+@using System.Threading.Tasks;
+
+
+<h1>Публикации</h1>
+<p class="text-muted">При нажатии на кнопку замены строки подключение происходит перезапись строки подключения в файле appsettings.json</p>
+<button class="btn btn-secondary mb-3" @onclick="()=>ИзменитьСтрокуПодкл()">Переключить строку подключения</button>
+
+
+
+@foreach (var post in posts)
+{
+    <Post post="post"></Post>
+}
+
+
+
+@code{
+    List<post> posts;
+
+    protected override void OnInitialized()
+    {
+        posts = Posts.GetDbPosts();
+    }
+
+    async Task ИзменитьСтрокуПодкл()
+    {
+        appsettings settings;
+        KeyValuePair<string, string> first, second;
+        using (FileStream fs = new FileStream("appsettings.json", FileMode.OpenOrCreate))
+        {
+            settings = await JsonSerializer.DeserializeAsync<appsettings>(fs);
+            first = settings.ConnectionStrings.FirstOrDefault(s => s.Key == "DefaultConnection");
+            second = settings.ConnectionStrings.FirstOrDefault(s => s.Key == "Connection2");
+        }
+        using (FileStream fs = new FileStream("appsettings.json", FileMode.Truncate))
+        {
+            settings.ConnectionStrings["DefaultConnection"] = second.Value;
+            settings.ConnectionStrings["Connection2"] = first.Value;
+            await JsonSerializer.SerializeAsync<appsettings>(fs, settings);
+        }
+        NavigationManager.NavigateTo("/", true);
+    }
+}
